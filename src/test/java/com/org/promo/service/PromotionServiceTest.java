@@ -5,12 +5,14 @@ import com.org.promo.domain.enumeration.PromotionType;
 import com.org.promo.domain.model.PromotionModel;
 import com.org.promo.domain.model.SKUPricingModel;
 import com.org.promo.domain.model.SKURequestModel;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 class PromotionServiceTest {
 
@@ -23,39 +25,27 @@ class PromotionServiceTest {
 	}
 
 	@Test
-	void applyPromotion() {
-	}
-
-	@Test
 	void testApplyPromotion() {
-		promotionService.applyPromotion(getItemList());
+		BigDecimal result= promotionService.applyPromotion(getItemList(Map.of("A", 3L,"B", 2L,"C", 1L,"D",1L)));
+		Assertions.assertEquals(result, BigDecimal.valueOf(205L));
+		BigDecimal result1= promotionService.applyPromotion(getItemList(Map.of("A", 1L,"B", 1L,"C", 1L)));
+		Assertions.assertEquals(result1, BigDecimal.valueOf(100L));
+		BigDecimal result2= promotionService.applyPromotion(getItemList(Map.of("A", 5L,"B", 5L,"C", 1L)));
+		Assertions.assertEquals(result2, BigDecimal.valueOf(370L));
+		BigDecimal result3= promotionService.applyPromotion(getItemList(Map.of("A", 3L,"B", 5L,"C", 1L,"D",1L)));
+		Assertions.assertEquals(result3, BigDecimal.valueOf(280L));
 	}
 
-	private List<SKURequestModel> getItemList() {
-		return List.of(SKURequestModel
-						.builder()
-						.skuId("A")
-						.quantity(3L)
-						.applied(Boolean.FALSE)
-						.build(),
-				SKURequestModel
-						.builder()
-						.skuId("B")
-						.quantity(5L)
-						.applied(Boolean.FALSE)
-						.build(),
-				SKURequestModel
-						.builder()
-						.skuId("C")
-						.quantity(1L)
-						.applied(Boolean.FALSE)
-						.build(),
-				SKURequestModel
-						.builder()
-						.skuId("D")
-						.quantity(1L)
-						.applied(Boolean.FALSE)
-						.build());
+	private List<SKURequestModel> getItemList(Map<String, Long> request) {
+		return request.entrySet()
+					  .stream()
+					  .map(itemRequest -> SKURequestModel.builder()
+														 .skuId(itemRequest.getKey())
+														 .quantity(itemRequest.getValue())
+														 .applied(Boolean.FALSE)
+														 .build())
+					  .collect(Collectors.toList());
+
 	}
 
 	private List<PromotionModel> getPromoList() {
